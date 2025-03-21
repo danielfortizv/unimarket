@@ -1,105 +1,160 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  final List<Map<String, dynamic>> _emprendimientos = List.generate(20, (index) {
-    return {
-      "nombre": "Emprendimiento ${index + 1}",
-      "rating": 4.5,
-      "precio": "\$80 - \$120",
-      "descripcion": "Descripción breve del negocio número ${index + 1}.",
-      "hashtags": "#emprendimiento #universitario #producto",
-      "imagen":
-          "https://via.placeholder.com/400x300.png?text=Producto+${index + 1}"
-    };
-  });
-
-  void _onNavTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  Widget buildEmprendimientoCard(Map<String, dynamic> item) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF76C3BD),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            title: Text(item["nombre"], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            trailing: Text(item["precio"], style: const TextStyle(fontSize: 16)),
-            subtitle: Row(
-              children: [
-                const Icon(Icons.star, size: 16),
-                Text(item["rating"].toString()),
-              ],
-            ),
-          ),
-          Image.network(item["imagen"], fit: BoxFit.cover),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(item["descripcion"]),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(item["hashtags"], style: const TextStyle(fontStyle: FontStyle.italic)),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(Icons.chat_bubble_outline),
-                SizedBox(width: 12),
-                Icon(Icons.bookmark_border),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset("assets/images/octans_logo.png", height: 40),
-            const SizedBox(width: 8),
-            const Text("UniMarket", style: TextStyle(fontSize: 22)),
-          ],
+        title: const Text(
+          'UNIMARKET',
+          style: TextStyle(
+            fontSize: 28,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF102044),
+        centerTitle: false,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.shopping_cart_outlined, size: 28),
+          ),
+        ],
       ),
-      body: ListView.builder(
-        itemCount: _emprendimientos.length,
-        itemBuilder: (context, index) {
-          return buildEmprendimientoCard(_emprendimientos[index]);
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('emprendimientos').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No hay emprendimientos aún."));
+          }
+
+          return ListView(
+            children: snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              final List<dynamic> imagenes = data['imagenes'] ?? [];
+
+              return Card(
+                margin: const EdgeInsets.all(12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Fila: Nombre + Rating/Precio
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              data['nombre'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.star, size: 12),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    (data['rating'] ?? '').toString(),
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                data['rango_precios'] ?? '',
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Carrusel de imágenes debajo del título
+                    if (imagenes.isNotEmpty)
+                      SizedBox(
+                        height: 220,
+                        width: double.infinity,
+                        child: PageView.builder(
+                          itemCount: imagenes.length,
+                          itemBuilder: (context, index) {
+                            final imagenUrl = imagenes[index];
+                            return Image.network(
+                              imagenUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 220,
+                            );
+                          },
+                        ),
+                      ),
+
+                    // Descripción alineada a la izquierda
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
+                      child: Text(
+                        data['descripcion'] ?? '',
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(fontFamily: 'Poppins'),
+                      ),
+                    ),
+
+                    // Hashtags + Iconos (alineados)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              (data['hashtags'] as List<dynamic>?)?.join(" ") ?? '',
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                fontSize: 13,
+                                fontFamily: 'Poppins',
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.chat_bubble_outline, size: 21),
+                          const SizedBox(width: 12),
+                          const Icon(Icons.bookmark_border, size: 23),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTapped,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: const Color(0xFF102044),
+        currentIndex: 0,
+        type: BottomNavigationBarType.fixed, // <-- espaciado uniforme
+        onTap: (index) {},
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),
