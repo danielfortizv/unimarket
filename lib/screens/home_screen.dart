@@ -19,10 +19,15 @@ class HomeScreen extends StatelessWidget {
         centerTitle: false,
         actions: const [
           Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: Icon(Icons.delivery_dining, size: 32), 
+          ),
+          Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: Icon(Icons.shopping_cart_outlined, size: 28),
           ),
         ],
+
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('emprendimientos').snapshots(),
@@ -123,7 +128,7 @@ class HomeScreen extends StatelessWidget {
 
                     // Hashtags + Iconos (alineados)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -138,12 +143,19 @@ class HomeScreen extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Icon(Icons.chat_bubble_outline, size: 21),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.bookmark_border, size: 23),
+                          // Comentarios ahora es un botón
+                          IconButton(
+                            icon: const Icon(Icons.chat_bubble_outline, size: 24),
+                            onPressed: () {
+                              mostrarComentarios(context, data['comentarios'] ?? []);
+                            },
+                          ),
+                          const SizedBox(width: 0),
+                          const Icon(Icons.bookmark_border, size: 27),
                         ],
                       ),
                     ),
+
                   ],
                 ),
               );
@@ -164,4 +176,64 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  void mostrarComentarios(BuildContext context, List<dynamic> comentarios) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                const SizedBox(height: 8),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Comentarios",
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: comentarios.length,
+                    itemBuilder: (context, index) {
+                      final comentario = comentarios[index];
+                      return ListTile(
+                        leading: const CircleAvatar(child: Icon(Icons.person)),
+                        title: Text(
+                          comentario,
+                          style: const TextStyle(fontFamily: 'Poppins'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 }
