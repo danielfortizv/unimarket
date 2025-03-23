@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unimarket/models/chat_model.dart';
+import 'package:unimarket/models/mensaje_model.dart';
+import 'package:unimarket/services/mensaje_service.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final CollectionReference _chatsRef = _firestore.collection('chats');
+  final MensajeService _mensajeService = MensajeService();
 
 
   Future<void> crearChat(Chat chat) async {
@@ -48,5 +51,20 @@ class ChatService {
     return null;
   }
 
-  // Nota: No se permite eliminar chats según las reglas de negocio.
+  Future<void> eliminarChat(String chatId) async {
+    final mensajesSnapshot = await _firestore.collection('chats').doc(chatId).collection('mensajes').get();
+    for (final doc in mensajesSnapshot.docs) {
+      await _mensajeService.eliminarMensaje(chatId, doc.id);
+    }
+    await _firestore.collection('chats').doc(chatId).delete();
+  }
+
+  Future<void> agregarMensajeAChat(String chatId, Mensaje mensaje) async {
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('mensajes')
+        .add(mensaje.toMap());
+  }
+
 }

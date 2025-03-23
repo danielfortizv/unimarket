@@ -13,9 +13,9 @@ class Comentario {
     required this.clienteId,
     required this.texto,
     required this.rating,
-    required this.fecha,
-    required this.likes,
-  });
+    String? fecha, 
+    this.likes = 0,
+  }) : fecha = fecha ?? DateTime.now().toIso8601String().substring(0, 10);
 
   factory Comentario.fromMap(Map<String, dynamic> map, String id) {
     return Comentario(

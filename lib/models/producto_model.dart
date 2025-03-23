@@ -4,7 +4,8 @@ class Producto {
   final String descripcion;
   final double precio;
   final List<String> imagenes;
-  final String emprendedorId;
+  final List<String> comentarioIds;
+  final String emprendimientoId;
   final double rating;
 
   Producto({
@@ -13,8 +14,9 @@ class Producto {
     required this.descripcion,
     required this.precio,
     required this.imagenes,
-    required this.emprendedorId,
+    required this.emprendimientoId,
     required this.rating,
+    required this.comentarioIds,
   });
 
   factory Producto.fromMap(Map<String, dynamic> map, String id) {
@@ -24,8 +26,9 @@ class Producto {
       descripcion: map['descripcion'],
       precio: map['precio'],
       imagenes: List<String>.from(map['imagenes']),
-      emprendedorId: map['emprendedorId'],
+      emprendimientoId: map['emprendimientoId'],
       rating: map['rating']?.toDouble() ?? 0.0,
+      comentarioIds: List<String>.from(map['comentarioIds']),
     );
   }
 
@@ -35,8 +38,9 @@ class Producto {
       'descripcion': descripcion,
       'precio': precio,
       'imagenes': imagenes,
-      'emprendedorId': emprendedorId,
+      'emprendimientoId': emprendimientoId,
       'rating': rating,
+      'comentarioIds': comentarioIds,
     };
   }
 }
