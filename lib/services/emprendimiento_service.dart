@@ -202,26 +202,37 @@ class EmprendimientoService {
     });
   }
 
-Future<List<Emprendimiento>> obtenerEmprendimientosSimilares(String emprendimientoId) async {
-  final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
-  if (!doc.exists) return [];
+  Future<List<Emprendimiento>> obtenerEmprendimientosSimilares(String emprendimientoId) async {
+    final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
+    if (!doc.exists) return [];
 
-  final data = doc.data()!;
-  final List<dynamic> hashtags = data['hashtags'] ?? [];
+    final data = doc.data()!;
+    final List<dynamic> hashtags = data['hashtags'] ?? [];
 
-  if (hashtags.isEmpty) return [];
+    if (hashtags.isEmpty) return [];
 
-  final snapshot = await _db
-      .collection('emprendimientos')
-      .where('hashtags', arrayContainsAny: hashtags)
-      .get();
+    final snapshot = await _db
+        .collection('emprendimientos')
+        .where('hashtags', arrayContainsAny: hashtags)
+        .get();
 
-  return snapshot.docs
-      .where((d) => d.id != emprendimientoId) // evitar mostrar el mismo emprendimiento
-      .map((doc) => Emprendimiento.fromMap(doc.data(), doc.id))
-      .toList();
-}
+    return snapshot.docs
+        .where((d) => d.id != emprendimientoId) // evitar mostrar el mismo emprendimiento
+        .map((doc) => Emprendimiento.fromMap(doc.data(), doc.id))
+        .toList();
+  }
 
+  Future<List<Emprendimiento>> buscador(String texto) async {
+    final palabras = texto.toLowerCase().split(' ');
+    final snapshot = await _db.collection('emprendimientos').get();
 
+    return snapshot.docs
+        .map((doc) => Emprendimiento.fromMap(doc.data(), doc.id))
+        .where((e) => palabras.any((palabra) =>
+            e.nombre.toLowerCase().contains(palabra) ||
+            (e.descripcion?.toLowerCase().contains(palabra) ?? false) ||
+            e.hashtags.any((h) => h.toLowerCase().contains(palabra))))
+        .toList();
+  }
 
 }

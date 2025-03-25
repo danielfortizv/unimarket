@@ -11,27 +11,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'UNIMARKET',
-          style: TextStyle(
-            fontSize: 28,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 20.0),
-            child: Icon(Icons.delivery_dining, size: 32),
-          ),
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Icon(Icons.shopping_cart_outlined, size: 28),
-          ),
-        ],
-      ),
       body: StreamBuilder<List<Emprendimiento>>(
 
         stream: _emprendimientoService.obtenerTodos(),
@@ -171,17 +150,6 @@ class HomeScreen extends StatelessWidget {
             },
           );
         },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {},
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Mensajes'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
       ),
     );
   }

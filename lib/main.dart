@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'screens/home_screen.dart';
+import 'package:unimarket/screens/main_navigation_screen.dart';
 import 'theme/theme.dart';
 
 
@@ -21,7 +21,7 @@ class UniMarketApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'UniMarket',
       theme: AppTheme.lightTheme,
-      home: HomeScreen(),
+      home: MainNavigationScreen(initialIndex: 0),
     );
   }
 }
