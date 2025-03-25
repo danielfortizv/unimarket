@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
+import 'package:unimarket/screens/producto_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -186,22 +187,35 @@ class EmprendimientoScreen extends StatelessWidget {
                     ),
                     itemBuilder: (context, index) {
                       final producto = productos[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              producto.imagenes.first,
-                              height: 140,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProductoDetailScreen(producto: producto),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(producto.nombre, style: const TextStyle(fontFamily: 'Poppins')),
-                          Text('\$${producto.precio}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Hero(
+                              tag: producto.id, 
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  producto.imagenes.first,
+                                  height: 140,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(producto.nombre, style: const TextStyle(fontFamily: 'Poppins')),
+                            Text('\$${producto.precio}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
+                        ),
                       );
                     },
                   );

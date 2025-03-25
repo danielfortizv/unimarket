@@ -24,7 +24,7 @@ class Producto {
       id: id,
       nombre: map['nombre'],
       descripcion: map['descripcion'],
-      precio: map['precio'],
+      precio: (map['precio'] as num).toDouble(),
       imagenes: List<String>.from(map['imagenes']),
       emprendimientoId: map['emprendimientoId'],
       rating: map['rating']?.toDouble(),
