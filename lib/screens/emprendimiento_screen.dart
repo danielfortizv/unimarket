@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
-import 'package:unimarket/screens/home_screen.dart';
-import 'package:unimarket/screens/main_navigation_screen.dart';
-import 'package:unimarket/screens/search_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
