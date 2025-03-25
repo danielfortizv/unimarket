@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unimarket/models/cliente_model.dart';
 
 class ClienteService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  ClienteService([FirebaseFirestore? firestore]) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> crearCliente(Cliente cliente) async {
     if (cliente.nombre.isEmpty || cliente.email.isEmpty || cliente.codigo.isEmpty) {

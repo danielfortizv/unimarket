@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/carrito_mercado_model.dart';
 
 class CarritoService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  CarritoService([FirebaseFirestore? firestore]) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> crearCarrito(CarritoDeMercado carrito) async {
     if (carrito.clienteId.isEmpty || carrito.emprendedorId.isEmpty) {

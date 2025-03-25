@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/domiciliario_model.dart';
 
 class DomiciliarioService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  DomiciliarioService([FirebaseFirestore? firestore]) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> crearDomiciliario(Domiciliario domiciliario) async {
     if (domiciliario.nombre.isEmpty || domiciliario.email.isEmpty || domiciliario.codigo.isEmpty) {

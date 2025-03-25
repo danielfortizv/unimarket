@@ -5,11 +5,20 @@ import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/services/carrito_mercado_service.dart';
 
 class ProductoService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  late final CollectionReference productosCollection = _db.collection('productos');
-  final ComentarioService _comentarioService = ComentarioService();
-  final EmprendimientoService _emprendimientoService = EmprendimientoService();
-  final CarritoService _carritoService = CarritoService();
+  final FirebaseFirestore _db;
+  late final CollectionReference productosCollection;
+  late final ComentarioService _comentarioService;
+  late final EmprendimientoService _emprendimientoService;
+  late final CarritoService _carritoService;
+
+  ProductoService([FirebaseFirestore? firestore])
+      : _db = firestore ?? FirebaseFirestore.instance {
+    productosCollection = _db.collection('productos');
+    _comentarioService = ComentarioService(_db, this);
+    _emprendimientoService = EmprendimientoService(_db, this);
+    _carritoService = CarritoService(_db);
+  }
+
 
   Future<void> crearProducto(Producto producto) async {
     if (producto.nombre.isEmpty || producto.precio <= 0 || producto.imagenes.isEmpty || producto.emprendimientoId.isEmpty) {

@@ -1,26 +1,26 @@
 class Favorito {
   final String id;
   final String clienteId;
-  final String emprendedorId;
+  final String emprendimientoId;
 
   Favorito({
     required this.id,
     required this.clienteId,
-    required this.emprendedorId,
+    required this.emprendimientoId,
   });
 
   factory Favorito.fromMap(Map<String, dynamic> map, String id) {
     return Favorito(
       id: id,
       clienteId: map['clienteId'],
-      emprendedorId: map['emprendedorId'],
+      emprendimientoId: map['emprendimientoId'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'clienteId': clienteId,
-      'emprendedorId': emprendedorId,
+      'emprendimientoId': emprendimientoId,
     };
   }
 }

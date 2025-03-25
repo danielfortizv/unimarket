@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unimarket/models/mensaje_model.dart';
 
 class MensajeService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  MensajeService([FirebaseFirestore? firestore]) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> crearMensaje(Mensaje mensaje, String chatId) async {
     if (mensaje.emisorId.isEmpty || mensaje.hora.isEmpty) {

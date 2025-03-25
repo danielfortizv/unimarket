@@ -3,8 +3,11 @@ import 'package:unimarket/services/producto_service.dart';
 import '../models/comentario_model.dart';
 
 class ComentarioService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final ProductoService _productoService = ProductoService();
+  final FirebaseFirestore _db;
+  final ProductoService? _productoService;
+  
+  ComentarioService([FirebaseFirestore? firestore, this._productoService])
+      : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> crearComentario(Comentario comentario) async {
     if (comentario.productoId.isEmpty || comentario.clienteId.isEmpty || comentario.texto.isEmpty || comentario.rating < 0 || comentario.rating > 5) {
@@ -20,7 +23,7 @@ class ComentarioService {
     });
 
     // Actualizar rating del producto
-    await _productoService.actualizarRatingProducto(comentario.productoId);
+    await _productoService?.actualizarRatingProducto(comentario.productoId);
   }
 
   Future<void> actualizarComentario(Comentario comentario) async {
@@ -29,7 +32,7 @@ class ComentarioService {
     }
 
     await _db.collection('comentarios').doc(comentario.id).update(comentario.toMap());
-    await _productoService.actualizarRatingProducto(comentario.productoId);
+    await _productoService?.actualizarRatingProducto(comentario.productoId);
   }
 
   Future<void> eliminarComentario(String comentarioId, String productoId) async {

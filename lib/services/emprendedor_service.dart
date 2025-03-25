@@ -5,9 +5,17 @@ import 'package:unimarket/services/emprendimiento_service.dart';
 
 
 class EmprendedorService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final EmprendimientoService _emprendimientoService = EmprendimientoService();
-  final ChatService _chatService = ChatService();
+  final FirebaseFirestore _db;
+  final EmprendimientoService _emprendimientoService;
+  final ChatService _chatService;
+
+  EmprendedorService([
+    FirebaseFirestore? firestore,
+    EmprendimientoService? emprendimientoService,
+    ChatService? chatService,
+  ])  : _db = firestore ?? FirebaseFirestore.instance,
+        _emprendimientoService = emprendimientoService ?? EmprendimientoService(firestore),
+        _chatService = chatService ?? ChatService(firestore);
 
   Future<void> crearEmprendedor(Emprendedor emprendedor) async {
     if (emprendedor.nombre.isEmpty || emprendedor.email.isEmpty || emprendedor.codigo.isEmpty) {

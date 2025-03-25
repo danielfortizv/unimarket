@@ -4,9 +4,13 @@ import 'package:unimarket/models/mensaje_model.dart';
 import 'package:unimarket/services/mensaje_service.dart';
 
 class ChatService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late final CollectionReference _chatsRef = _firestore.collection('chats');
-  final MensajeService _mensajeService = MensajeService();
+  final FirebaseFirestore _firestore;
+  final MensajeService _mensajeService;
+
+  ChatService([FirebaseFirestore? firestore, MensajeService? mensajeService])
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _mensajeService = mensajeService ?? MensajeService(firestore);
+
 
 
   Future<void> crearChat(Chat chat) async {
@@ -14,7 +18,7 @@ class ChatService {
       throw Exception("El chat debe tener un cliente y un emprendedor asociados.");
     }
 
-    await _chatsRef.doc(chat.id).set(chat.toMap());
+    await _firestore.collection('chats').doc(chat.id).set(chat.toMap());
   }
 
   Future<void> actualizarChat(Chat chat) async {
@@ -22,29 +26,29 @@ class ChatService {
       throw Exception("El chat debe tener un cliente y un emprendedor asociados.");
     }
 
-    await _chatsRef.doc(chat.id).update(chat.toMap());
+    await _firestore.collection('chats').doc(chat.id).update(chat.toMap());
   }
 
   Stream<List<Chat>> obtenerChatsPorCliente(String clienteId) {
-    return _chatsRef
+    return _firestore.collection('chats')
         .where('clienteId', isEqualTo: clienteId)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Chat.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            .map((doc) => Chat.fromMap(doc.data(), doc.id))
             .toList());
   }
 
   Stream<List<Chat>> obtenerChatsPorEmprendedor(String emprendedorId) {
-    return _chatsRef
+    return _firestore.collection('chats')
         .where('emprendedorId', isEqualTo: emprendedorId)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Chat.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            .map((doc) => Chat.fromMap(doc.data(), doc.id))
             .toList());
   }
 
   Future<Chat?> obtenerChatPorId(String chatId) async {
-    final doc = await _chatsRef.doc(chatId).get();
+    final doc = await _firestore.collection('chats').doc(chatId).get();
     if (doc.exists) {
       return Chat.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     }

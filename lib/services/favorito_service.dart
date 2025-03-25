@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/favorito_model.dart';
 
 class FavoritoService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  FavoritoService([FirebaseFirestore? firestore]) : _db = firestore ?? FirebaseFirestore.instance;
 
   Future<void> agregarFavorito(Favorito favorito) async {
-    if (favorito.clienteId.isEmpty || favorito.emprendedorId.isEmpty) {
+    if (favorito.clienteId.isEmpty || favorito.emprendimientoId.isEmpty) {
       throw Exception('Favorito inválido');
     }
     await _db.collection('favoritos').doc(favorito.id).set(favorito.toMap());
@@ -25,19 +26,19 @@ class FavoritoService {
             .toList());
   }
 
-  Future<bool> esFavorito(String clienteId, String emprendedorId) async {
+  Future<bool> esFavorito(String clienteId, String emprendimientoId) async {
     final query = await _db.collection('favoritos')
         .where('clienteId', isEqualTo: clienteId)
-        .where('emprendedorId', isEqualTo: emprendedorId)
+        .where('emprendimientoId', isEqualTo: emprendimientoId)
         .get();
 
     return query.docs.isNotEmpty;
   }
 
-  Future<Favorito?> obtenerFavorito(String clienteId, String emprendedorId) async {
+  Future<Favorito?> obtenerFavorito(String clienteId, String emprendimientoId) async {
     final query = await _db.collection('favoritos')
         .where('clienteId', isEqualTo: clienteId)
-        .where('emprendedorId', isEqualTo: emprendedorId)
+        .where('emprendimientoId', isEqualTo: emprendimientoId)
         .get();
 
     if (query.docs.isNotEmpty) {

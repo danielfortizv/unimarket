@@ -4,10 +4,15 @@ import 'package:unimarket/services/favorito_service.dart';
 import 'package:unimarket/services/producto_service.dart';
 
 class EmprendimientoService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
   final String collectionPath = 'emprendimientos';
-  final ProductoService _productoService = ProductoService();
-  final FavoritoService _favoritoService = FavoritoService();
+  final ProductoService? _productoService;
+  final FavoritoService _favoritoService;
+
+  EmprendimientoService([FirebaseFirestore? firestore, this._productoService])
+    : _db = firestore ?? FirebaseFirestore.instance,
+      _favoritoService = FavoritoService(firestore);
+
 
   Future<void> crearEmprendimiento(Emprendimiento emprendimiento) async {
     if (emprendimiento.nombre.isEmpty || emprendimiento.emprendedorId.isEmpty) {
@@ -35,11 +40,11 @@ class EmprendimientoService {
       .where('emprendimientoId', isEqualTo: emprendimientoId).get();
 
     for (final doc in productosSnapshot.docs) {
-      await _productoService.eliminarProducto(doc.id);
+      await _productoService?.eliminarProducto(doc.id);
     }
 
     final favoritosSnapshot = await _db.collection('favoritos')
-      .where('emprendedorId', isEqualTo: emprendimientoId).get();
+      .where('emprendimientoId', isEqualTo: emprendimientoId).get();
 
     for (final doc in favoritosSnapshot.docs) {
       await _favoritoService.eliminarFavorito(doc.id);
