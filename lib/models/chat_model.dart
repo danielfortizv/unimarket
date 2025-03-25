@@ -32,4 +32,19 @@ class Chat {
       'mensajes': mensajes.map((m) => m.toMap()).toList(),
     };
   }
+
+    Chat copyWith({
+      String? id,
+      String? clienteId,
+      String? emprendedorId,
+      List<Mensaje>? mensajes,
+    }) {
+      return Chat(
+        id: id ?? this.id,
+        clienteId: clienteId ?? this.clienteId,
+        emprendedorId: emprendedorId ?? this.emprendedorId,
+        mensajes: mensajes ?? this.mensajes,
+      );
+    }
+
 }

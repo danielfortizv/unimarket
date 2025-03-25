@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unimarket/screens/chat_screen.dart';
+import 'package:unimarket/services/chat_service.dart';
+import 'package:unimarket/models/chat_model.dart';
 
 class EmprendimientoScreen extends StatelessWidget {
   final Emprendimiento emprendimiento;
@@ -111,7 +115,43 @@ class EmprendimientoScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final userId = FirebaseAuth.instance.currentUser?.uid;
+                        if (userId == null) return;
+
+                        final chatService = ChatService();
+
+                        // Verificar si ya existe un chat entre cliente y emprendedor
+                        Chat? chatExistente = await chatService.obtenerChatEntreClienteYEmprendedor(
+                          userId,
+                          emprendimiento.emprendedorId,
+                        );
+
+                        // Si no existe, crear uno nuevo
+                        chatExistente ??= await chatService.crearChat(Chat(
+                          id: '', // se genera automáticamente
+                          clienteId: userId,
+                          emprendedorId: emprendimiento.emprendedorId,
+                          mensajes: [],
+                        ));
+
+                        // Navegar a la pantalla de chat
+                        if (context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                chat: chatExistente!,
+                                currentUserId: userId,
+                                nombreEmprendimiento: emprendimiento.nombre,
+                                fotoEmprendimiento: emprendimiento.imagenes.isNotEmpty
+                                    ? emprendimiento.imagenes.first
+                                    : '', // o una imagen por defecto si lo prefieres
+                              ),
+                            ),
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         backgroundColor: Colors.grey.shade200,

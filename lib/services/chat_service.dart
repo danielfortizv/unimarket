@@ -13,13 +13,15 @@ class ChatService {
 
 
 
-  Future<void> crearChat(Chat chat) async {
+  Future<Chat> crearChat(Chat chat) async {
     if (chat.clienteId.isEmpty || chat.emprendedorId.isEmpty) {
       throw Exception("El chat debe tener un cliente y un emprendedor asociados.");
     }
 
-    await _firestore.collection('chats').doc(chat.id).set(chat.toMap());
+    final docRef = await _firestore.collection('chats').add(chat.toMap());
+    return chat.copyWith(id: docRef.id);
   }
+
 
   Future<void> actualizarChat(Chat chat) async {
     if (chat.clienteId.isEmpty || chat.emprendedorId.isEmpty) {
@@ -70,5 +72,23 @@ class ChatService {
         .collection('mensajes')
         .add(mensaje.toMap());
   }
+
+  Future<Chat?> obtenerChatEntreClienteYEmprendedor(String clienteId, String emprendedorId) async {
+    final query = await _firestore
+        .collection('chats')
+        .where('clienteId', isEqualTo: clienteId)
+        .where('emprendedorId', isEqualTo: emprendedorId)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      final doc = query.docs.first;
+      return Chat.fromMap(doc.data(), doc.id);
+    }
+
+    return null;
+  }
+
+
 
 }
