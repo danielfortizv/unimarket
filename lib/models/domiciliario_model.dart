@@ -8,6 +8,8 @@ class Domiciliario extends Cliente {
     required super.nombre,
     required super.email,
     required super.codigo,
+    required super.password,
+    super.fotoPerfil,
     this.disponible = true,
   });
 
@@ -17,6 +19,8 @@ class Domiciliario extends Cliente {
       nombre: map['nombre'],
       email: map['email'],
       codigo: map['codigo'],
+      password: map['password'],
+      fotoPerfil: map['fotoPerfil'],
       disponible: map['disponible'] ?? true,
     );
   }
@@ -27,6 +31,8 @@ class Domiciliario extends Cliente {
       'nombre': nombre,
       'email': email,
       'codigo': codigo,
+      'password': password,
+      'fotoPerfil': fotoPerfil,
       'disponible': disponible,
     };
   }
