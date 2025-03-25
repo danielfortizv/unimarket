@@ -1,21 +1,21 @@
 class Producto {
   final String id;
   final String nombre;
-  final String descripcion;
+  final String? descripcion;
   final double precio;
   final List<String> imagenes;
   final List<String> comentarioIds;
   final String emprendimientoId;
-  final double rating;
+  final double? rating;
 
   Producto({
     required this.id,
     required this.nombre,
-    required this.descripcion,
+    this.descripcion,
     required this.precio,
     required this.imagenes,
     required this.emprendimientoId,
-    required this.rating,
+    this.rating,
     required this.comentarioIds,
   });
 
@@ -27,7 +27,7 @@ class Producto {
       precio: map['precio'],
       imagenes: List<String>.from(map['imagenes']),
       emprendimientoId: map['emprendimientoId'],
-      rating: map['rating']?.toDouble() ?? 0.0,
+      rating: map['rating']?.toDouble(),
       comentarioIds: List<String>.from(map['comentarioIds']),
     );
   }

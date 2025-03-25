@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:unimarket/models/emprendimiento_model.dart';
+import 'package:unimarket/screens/emprendimiento_screen.dart';
+import 'package:unimarket/services/emprendimiento_service.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final EmprendimientoService _emprendimientoService = EmprendimientoService();
+
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,30 +24,33 @@ class HomeScreen extends StatelessWidget {
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 20.0),
-            child: Icon(Icons.delivery_dining, size: 32), 
+            child: Icon(Icons.delivery_dining, size: 32),
           ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: Icon(Icons.shopping_cart_outlined, size: 28),
           ),
         ],
-
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('emprendimientos').snapshots(),
+      body: StreamBuilder<List<Emprendimiento>>(
+
+        stream: _emprendimientoService.obtenerTodos(),
+        
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("No hay emprendimientos aún."));
           }
 
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
-              final List<dynamic> imagenes = data['imagenes'] ?? [];
+          final emprendimientos = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: emprendimientos.length,
+            itemBuilder: (context, index) {
+              final emprendimiento = emprendimientos[index];
 
               return Card(
                 margin: const EdgeInsets.all(12),
@@ -51,7 +58,6 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Fila: Nombre + Rating/Precio
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Row(
@@ -59,12 +65,22 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              data['nombre'] ?? '',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Poppins',
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EmprendimientoScreen(emprendimiento: emprendimiento),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                emprendimiento.nombre,
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Poppins',
+                                ),
                               ),
                             ),
                           ),
@@ -76,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                                   const Icon(Icons.star, size: 12),
                                   const SizedBox(width: 4),
                                   Text(
-                                    (data['rating'] ?? '').toString(),
+                                    emprendimiento.rating?.toStringAsFixed(1) ?? '-',
                                     style: const TextStyle(
                                       fontFamily: 'Poppins',
                                       fontSize: 16,
@@ -85,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                                 ],
                               ),
                               Text(
-                                data['rango_precios'] ?? '',
+                                emprendimiento.rangoPrecios ?? '-',
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
@@ -97,15 +113,14 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // Carrusel de imágenes debajo del título
-                    if (imagenes.isNotEmpty)
+                    if (emprendimiento.imagenes.isNotEmpty)
                       SizedBox(
                         height: 220,
                         width: double.infinity,
                         child: PageView.builder(
-                          itemCount: imagenes.length,
+                          itemCount: emprendimiento.imagenes.length,
                           itemBuilder: (context, index) {
-                            final imagenUrl = imagenes[index];
+                            final imagenUrl = emprendimiento.imagenes[index];
                             return Image.network(
                               imagenUrl,
                               fit: BoxFit.cover,
@@ -116,25 +131,23 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
 
-                    // Descripción alineada a la izquierda
                     Padding(
                       padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
                       child: Text(
-                        data['descripcion'] ?? '',
+                        emprendimiento.descripcion ?? '',
                         textAlign: TextAlign.left,
                         style: const TextStyle(fontFamily: 'Poppins'),
                       ),
                     ),
 
-                    // Hashtags + Iconos (alineados)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
-                              (data['hashtags'] as List<dynamic>?)?.join(" ") ?? '',
+                              (emprendimiento.hashtags).join(" "),
                               style: const TextStyle(
                                 fontStyle: FontStyle.italic,
                                 fontSize: 13,
@@ -143,29 +156,25 @@ class HomeScreen extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // Comentarios ahora es un botón
                           IconButton(
                             icon: const Icon(Icons.chat_bubble_outline, size: 24),
-                            onPressed: () {
-                              mostrarComentarios(context, data['comentarios'] ?? []);
-                            },
+                            onPressed: () => mostrarComentarios(context, emprendimiento),
                           ),
                           const SizedBox(width: 0),
                           const Icon(Icons.bookmark_border, size: 27),
                         ],
                       ),
                     ),
-
                   ],
                 ),
               );
-            }).toList(),
+            },
           );
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
-        type: BottomNavigationBarType.fixed, // <-- espaciado uniforme
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {},
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
@@ -177,7 +186,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void mostrarComentarios(BuildContext context, List<dynamic> comentarios) {
+  void mostrarComentarios(BuildContext context, Emprendimiento emprendimiento) {
+    // Por ahora los comentarios están embebidos en productos, esto es solo placeholder
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -212,20 +222,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: comentarios.length,
-                    itemBuilder: (context, index) {
-                      final comentario = comentarios[index];
-                      return ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.person)),
-                        title: Text(
-                          comentario,
-                          style: const TextStyle(fontFamily: 'Poppins'),
-                        ),
-                      );
-                    },
+                const Expanded(
+                  child: Center(
+                    child: Text('Aquí irían los comentarios del emprendimiento'),
                   ),
                 ),
               ],
@@ -235,5 +234,4 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-
 }

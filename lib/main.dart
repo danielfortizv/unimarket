@@ -3,9 +3,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
 import 'theme/theme.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+
   runApp(const UniMarketApp());
 }
 
@@ -18,7 +21,7 @@ class UniMarketApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'UniMarket',
       theme: AppTheme.lightTheme,
-      home: const HomeScreen(),
+      home: HomeScreen(),
     );
   }
 }

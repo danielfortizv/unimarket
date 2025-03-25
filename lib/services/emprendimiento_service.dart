@@ -133,15 +133,95 @@ class EmprendimientoService {
     });
   }
 
-  Future<void> agregarPreguntaFrecuente(String emprendimientoId, String pregunta) async {
-    await _db.collection('emprendimientos').doc(emprendimientoId).update({
-      'preguntasFrecuentes': FieldValue.arrayUnion([pregunta])
-    });
-  }
-
   Future<void> eliminarImagenDeEmprendimiento(String emprendimientoId, String imageUrl) async {
     await _db.collection('emprendimientos').doc(emprendimientoId).update({
       'imagenes': FieldValue.arrayRemove([imageUrl])
     });
   }
+
+  Future<void> agregarHashtagAEmprendimiento(String emprendimientoId, String hashtag) async {
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'hashtags': FieldValue.arrayUnion([hashtag])
+    });
+  }
+
+  Future<void> eliminarHashtagDeEmprendimiento(String emprendimientoId, String hashtag) async {
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'hashtags': FieldValue.arrayRemove([hashtag])
+    });
+  }
+
+  Future<void> agregarInfoDeContacto(String emprendimientoId, String info) async {
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'info': info,
+    });
+  }
+
+  Future<void> agregarPreguntaFrecuenteAEmprendimiento(String emprendimientoId, String pregunta) async {
+    if (pregunta.trim().isEmpty) {
+      throw Exception('La pregunta no puede estar vacía');
+    }
+
+    final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
+    if (!doc.exists) throw Exception('El emprendimiento no existe');
+
+    final data = doc.data()!;
+    final preguntas = Map<String, dynamic>.from(data['preguntasFrecuentes'] ?? {});
+
+    if (preguntas.containsKey(pregunta)) {
+      throw Exception('La pregunta ya existe');
+    }
+
+    preguntas[pregunta] = null;
+
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'preguntasFrecuentes': preguntas,
+    });
+  }
+
+
+  Future<void> agregarRespuestaAPreguntaFrecuente(String emprendimientoId, String pregunta, String respuesta) async {
+    if (pregunta.trim().isEmpty || respuesta.trim().isEmpty) {
+      throw Exception('La pregunta y la respuesta no pueden estar vacías');
+    }
+
+    final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
+    if (!doc.exists) throw Exception('El emprendimiento no existe');
+
+    final data = doc.data()!;
+    final preguntas = Map<String, dynamic>.from(data['preguntasFrecuentes'] ?? {});
+
+    if (!preguntas.containsKey(pregunta)) {
+      throw Exception('La pregunta no existe');
+    }
+
+    preguntas[pregunta] = respuesta;
+
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'preguntasFrecuentes': preguntas,
+    });
+  }
+
+Future<List<Emprendimiento>> obtenerEmprendimientosSimilares(String emprendimientoId) async {
+  final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
+  if (!doc.exists) return [];
+
+  final data = doc.data()!;
+  final List<dynamic> hashtags = data['hashtags'] ?? [];
+
+  if (hashtags.isEmpty) return [];
+
+  final snapshot = await _db
+      .collection('emprendimientos')
+      .where('hashtags', arrayContainsAny: hashtags)
+      .get();
+
+  return snapshot.docs
+      .where((d) => d.id != emprendimientoId) // evitar mostrar el mismo emprendimiento
+      .map((doc) => Emprendimiento.fromMap(doc.data(), doc.id))
+      .toList();
+}
+
+
+
 }
