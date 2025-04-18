@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
-    primaryColor: const Color(0xFF2B4C7E),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF2B4C7E),
+      primary: const Color(0xFF2B4C7E),
+      onPrimary: Colors.white,
+    ),
     scaffoldBackgroundColor: const Color(0xFFF8F9FB),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF2B4C7E),
@@ -24,6 +28,22 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFF2B4C7E),
+        foregroundColor: Colors.white,
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: const Color(0xFF2B4C7E),
       ),
     ),
     textTheme: const TextTheme(

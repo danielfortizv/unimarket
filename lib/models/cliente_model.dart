@@ -3,11 +3,11 @@ class Cliente {
   final String nombre;
   final String email;
   final String codigo;
-  final String password;
+  final String? password;
   final String? fotoPerfil;
 
 
-  Cliente({required this.id, required this.nombre, required this.email, required this.codigo, required this.password, this.fotoPerfil});
+  Cliente({required this.id, required this.nombre, required this.email, required this.codigo, this.password, this.fotoPerfil});
 
   factory Cliente.fromMap(Map<String, dynamic> map, String id) {
     return Cliente(
@@ -25,7 +25,7 @@ class Cliente {
       'nombre': nombre,
       'email': email,
       'codigo': codigo,
-      'password': password,
+      if (password != null) 'password': password,
       'fotoPerfil': fotoPerfil,
     };
   }

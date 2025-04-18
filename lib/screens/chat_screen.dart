@@ -42,6 +42,17 @@ class _ChatScreenState extends State<ChatScreen> {
     _mensajeController.clear();
   }
 
+  String _formatearCabecera(DateTime fechaMsg) {
+    final hoy  = DateTime.now();
+    final hoySolo  = DateTime(hoy.year, hoy.month, hoy.day);
+    final ayerSolo = hoySolo.subtract(const Duration(days: 1));
+    final fechaSolo= DateTime(fechaMsg.year, fechaMsg.month, fechaMsg.day);
+
+    if (fechaSolo == hoySolo)       return 'Hoy';
+    if (fechaSolo == ayerSolo)      return 'Ayer';
+    return DateFormat("d 'de' MMMM", 'es').format(fechaMsg); // 16 de abril
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,8 +94,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   itemCount: agrupadoPorFecha.length,
                   itemBuilder: (context, index) {
-                    final fecha = agrupadoPorFecha.keys.elementAt(index);
-                    final mensajesDelDia = agrupadoPorFecha[fecha]!;
+                    final mensajesDelDia = agrupadoPorFecha.values.elementAt(index);
+                    final cabecera = _formatearCabecera(
+                      DateTime.parse(mensajesDelDia.first.hora).toLocal(),
+                    );
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              fecha,
+                              cabecera,
                               style: const TextStyle(fontSize: 13, color: Colors.black54),
                             ),
                           ),
@@ -132,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ),
                           );
-                        }).toList()
+                        })
                       ],
                     );
                   },

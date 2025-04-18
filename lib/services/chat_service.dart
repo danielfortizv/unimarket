@@ -14,7 +14,7 @@ class ChatService {
 
 
   Future<Chat> crearChat(Chat chat) async {
-    if (chat.clienteId.isEmpty || chat.emprendedorId.isEmpty) {
+    if (chat.clienteId.isEmpty || chat.emprendimientoId.isEmpty) {
       throw Exception("El chat debe tener un cliente y un emprendedor asociados.");
     }
 
@@ -24,7 +24,7 @@ class ChatService {
 
 
   Future<void> actualizarChat(Chat chat) async {
-    if (chat.clienteId.isEmpty || chat.emprendedorId.isEmpty) {
+    if (chat.clienteId.isEmpty || chat.emprendimientoId.isEmpty) {
       throw Exception("El chat debe tener un cliente y un emprendedor asociados.");
     }
 
@@ -40,9 +40,9 @@ class ChatService {
             .toList());
   }
 
-  Stream<List<Chat>> obtenerChatsPorEmprendedor(String emprendedorId) {
+  Stream<List<Chat>> obtenerChatsPorEmprendedor(String emprendimientoId) {
     return _firestore.collection('chats')
-        .where('emprendedorId', isEqualTo: emprendedorId)
+        .where('emprendimientoId', isEqualTo: emprendimientoId)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Chat.fromMap(doc.data(), doc.id))
@@ -73,11 +73,11 @@ class ChatService {
         .add(mensaje.toMap());
   }
 
-  Future<Chat?> obtenerChatEntreClienteYEmprendedor(String clienteId, String emprendedorId) async {
+  Future<Chat?> obtenerChatEntreClienteYEmprendimiento(String clienteId, String emprendimientoId) async {
     final query = await _firestore
         .collection('chats')
         .where('clienteId', isEqualTo: clienteId)
-        .where('emprendedorId', isEqualTo: emprendedorId)
+        .where('emprendimientoId', isEqualTo: emprendimientoId)
         .limit(1)
         .get();
 

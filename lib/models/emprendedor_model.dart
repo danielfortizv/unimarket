@@ -8,7 +8,7 @@ class Emprendedor extends Cliente {
     required super.nombre,
     required super.email,
     required super.codigo,
-    required super.password,
+    super.password,
     super.fotoPerfil,
     required this.emprendimientoIds,
   });
@@ -31,7 +31,7 @@ class Emprendedor extends Cliente {
       'nombre': nombre,
       'email': email,
       'codigo': codigo,
-      'password': password,
+      if (password != null) 'password': password,
       'fotoPerfil': fotoPerfil,
       'emprendimientoIds': emprendimientoIds,
     };

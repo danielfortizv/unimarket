@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
-import 'package:unimarket/screens/emprendimiento_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
+import 'package:unimarket/widgets/emprendimiento_card.dart';
 
 class HomeScreen extends StatelessWidget {
   final EmprendimientoService _emprendimientoService = EmprendimientoService();
@@ -30,123 +30,7 @@ class HomeScreen extends StatelessWidget {
             itemCount: emprendimientos.length,
             itemBuilder: (context, index) {
               final emprendimiento = emprendimientos[index];
-
-              return Card(
-                margin: const EdgeInsets.all(12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EmprendimientoScreen(emprendimiento: emprendimiento),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                emprendimiento.nombre,
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.star, size: 12),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    emprendimiento.rating?.toStringAsFixed(1) ?? '-',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                emprendimiento.rangoPrecios ?? '-',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if (emprendimiento.imagenes.isNotEmpty)
-                      SizedBox(
-                        height: 220,
-                        width: double.infinity,
-                        child: PageView.builder(
-                          itemCount: emprendimiento.imagenes.length,
-                          itemBuilder: (context, index) {
-                            final imagenUrl = emprendimiento.imagenes[index];
-                            return Image.network(
-                              imagenUrl,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 220,
-                            );
-                          },
-                        ),
-                      ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
-                      child: Text(
-                        emprendimiento.descripcion ?? '',
-                        textAlign: TextAlign.left,
-                        style: const TextStyle(fontFamily: 'Poppins'),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              (emprendimiento.hashtags).join(" "),
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 13,
-                                fontFamily: 'Poppins',
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.chat_bubble_outline, size: 24),
-                            onPressed: () => mostrarComentarios(context, emprendimiento),
-                          ),
-                          const SizedBox(width: 0),
-                          const Icon(Icons.bookmark_border, size: 27),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              return EmprendimientoCard(emprendimiento: emprendimiento, onMostrarComentarios: mostrarComentarios,);
             },
           );
         },

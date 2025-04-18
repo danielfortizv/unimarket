@@ -123,7 +123,7 @@ class EmprendimientoScreen extends StatelessWidget {
                         final chatService = ChatService();
 
                         // Verificar si ya existe un chat entre cliente y emprendedor
-                        Chat? chatExistente = await chatService.obtenerChatEntreClienteYEmprendedor(
+                        Chat? chatExistente = await chatService.obtenerChatEntreClienteYEmprendimiento(
                           userId,
                           emprendimiento.emprendedorId,
                         );
@@ -132,7 +132,7 @@ class EmprendimientoScreen extends StatelessWidget {
                         chatExistente ??= await chatService.crearChat(Chat(
                           id: '', // se genera automáticamente
                           clienteId: userId,
-                          emprendedorId: emprendimiento.emprendedorId,
+                          emprendimientoId: emprendimiento.id,
                           mensajes: [],
                         ));
 
@@ -183,7 +183,7 @@ class EmprendimientoScreen extends StatelessWidget {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 3 / 4,
+                      childAspectRatio: 5 / 6,
                     ),
                     itemBuilder: (context, index) {
                       final producto = productos[index];
@@ -222,7 +222,7 @@ class EmprendimientoScreen extends StatelessWidget {
                 },
               ),
               // Preguntas Frecuentes
-              const SizedBox(height: 24),
+              const SizedBox(height: 0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

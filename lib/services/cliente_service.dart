@@ -36,4 +36,12 @@ class ClienteService {
     return null;
   }
 
+  Future<void> actualizarFotoPerfil(String uid, String nuevaUrl) async {
+    await FirebaseFirestore.instance
+        .collection('clientes')
+        .doc(uid)
+        .update({'fotoPerfil': nuevaUrl});
+  }
+
+
 }

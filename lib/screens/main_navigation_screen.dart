@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'profile_screen.dart';
+import 'chats_screen.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 
@@ -15,8 +17,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     HomeScreen(),
     BuscadorScreen(),
-    Center(child: Text('Mensajes')), // Reemplaza con tu pantalla de mensajes
-    Center(child: Text('Perfil')),   // Reemplaza con tu pantalla de perfil
+    ChatsScreen(),
+    PerfilScreen(),
   ];
 
   void _onItemTapped(int index) {
