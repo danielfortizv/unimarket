@@ -122,7 +122,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: _loading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
                       : const Text(
                           "Ingresar",
                           style: TextStyle(fontSize: 16),

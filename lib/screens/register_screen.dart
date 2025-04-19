@@ -81,6 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.pop(context); // ir a login
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() => _loading = false);
@@ -201,7 +202,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 child: _loading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
                     : const Text(
                         "Registrarse",
                         style: TextStyle(fontSize: 16),
@@ -225,29 +233,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildField(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
-    bool isPassword = false,
-    TextInputType? keyboard,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      keyboardType: keyboard,
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon),
-        hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) return 'Este campo es obligatorio';
-        if (hint == 'Confirmar contraseña' && value != _passwordController.text) {
-          return 'Las contraseñas no coinciden';
-        }
-        return null;
-      },
-    );
-  }
 }

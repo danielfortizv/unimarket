@@ -85,7 +85,7 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                       ],
                     ),
                     Text(
-                      emp.rangoPrecios ?? '-',
+                      _formatearRango(emp.rangoPrecios),
                       style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
                     ),
                   ],
@@ -198,4 +198,31 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
       ),
     );
   }
+
+  String _formatearRango(String? rango) {
+    if (rango == null || rango == '-') return '-';
+
+    final partes = rango.replaceAll('\$', '').split('-');
+    if (partes.length != 2) return '\$$rango';
+
+    final int? min = int.tryParse(partes[0].trim());
+    final int? max = int.tryParse(partes[1].trim());
+    if (min == null || max == null) return '\$$rango';
+
+    final String formattedMin = _formatearNumero(min);
+    final String formattedMax = _formatearNumero(max);
+
+    return min == max ? '\$$formattedMin' : '\$$formattedMin - \$$formattedMax';
+  }
+
+  String _formatearNumero(int valor) {
+    final str = valor.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) buffer.write(' ');
+      buffer.write(str[i]);
+    }
+    return buffer.toString();
+  }
+
 }
