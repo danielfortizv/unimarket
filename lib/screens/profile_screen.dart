@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unimarket/models/cliente_model.dart';
 import 'package:unimarket/models/emprendedor_model.dart';
@@ -15,9 +14,6 @@ import 'package:unimarket/services/producto_service.dart';
 import 'package:unimarket/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
-/// ---------------------------
-///  PERFIL SCREEN
-/// ---------------------------
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
 
@@ -33,9 +29,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
   final _storageService = StorageService();
 
   late final String _uid;
+  Cliente? _cliente;
   Emprendedor? _emprendedor;
   Emprendimiento? _emprendimiento;
-  Cliente? _cliente;
 
   @override
   void initState() {
@@ -45,9 +41,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Future<void> _cargarDatos() async {
-    // Cargar cliente
     _cliente = await _clienteService.obtenerClientePorId(_uid);
-    // Cargar emprendedor (si existe)
     _emprendedor = await _emprendedorService.obtenerEmprendedorPorId(_uid);
     if (_emprendedor != null && _emprendedor!.emprendimientoIds.isNotEmpty) {
       _emprendimiento = await _emprendimientoService
@@ -56,54 +50,60 @@ class _PerfilScreenState extends State<PerfilScreen> {
     if (mounted) setState(() {});
   }
 
-    Future<void> _editarFotoPerfil() async {
+  Future<void> _editarFotoPerfil() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: picked.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+    final usar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('¿Usar esta foto de perfil?'),
+        content: CircleAvatar(
+          radius: 60,
+          backgroundImage: FileImage(File(picked.path)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+    if (usar != true || !mounted) return;
 
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Recortar imagen',
-          toolbarColor: Colors.blue,
-          toolbarWidgetColor: Colors.white,
-          lockAspectRatio: true,
-          cropStyle: CropStyle.circle,      
-          initAspectRatio: CropAspectRatioPreset.square,
-        ),
-        IOSUiSettings(
-          title: 'Recortar imagen',
-          aspectRatioLockEnabled: true,
-          cropStyle: CropStyle.circle,       
-        ),
-      ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    if (cropped == null) return;
-
-    // Eliminar la imagen anterior
-    if (_cliente?.fotoPerfil != null) {
-      await _storageService.eliminarArchivoPorUrl(_cliente!.fotoPerfil!);
+    try {
+      if (_cliente?.fotoPerfil != null) {
+        await _storageService.eliminarArchivoPorUrl(_cliente!.fotoPerfil!);
+      }
+      final url = await _storageService.subirArchivo(
+        File(picked.path),
+        'clientes/$_uid/perfil.jpg',
+      );
+      await _clienteService.actualizarFotoPerfil(_uid, url);
+      await _cargarDatos();
+    } finally {
+      if (mounted) Navigator.pop(context);
     }
-
-    // Subir nueva imagen
-    final urlNueva = await _storageService.subirArchivo(
-      File(cropped.path),
-      'clientes/$_uid/perfil.jpg',
-    );
-
-    // Actualizar en Firestore
-    await _clienteService.actualizarFotoPerfil(_uid, urlNueva);
-    await _cargarDatos();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_cliente == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(
@@ -124,7 +124,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundImage: NetworkImage(
-                        _cliente!.fotoPerfil ?? 'https://ui-avatars.com/api/?name=${_cliente!.nombre}',
+                        _cliente!.fotoPerfil ??
+                            'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_cliente!.nombre)}',
                       ),
                     ),
                     Container(
@@ -166,7 +167,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       context,
                       MaterialPageRoute(builder: (_) => RegistrarEmprendimientoScreen()),
                     );
-                    if (creado != null) await _cargarDatos();
+                    if (creado != null && mounted) _cargarDatos();
                   },
                   child: const Text('¿Quieres ser emprendedor?'),
                 ),
@@ -184,31 +185,35 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       ),
                     ),
                   );
-                  if (agregado == true) _cargarDatos();
+                  if (agregado == true && mounted) _cargarDatos();
                 },
                 child: const Text('Agregar producto'),
               ),
               const SizedBox(height: 24),
-              const Text('Mis productos',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins')),
+              const Text(
+                'Mis productos',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                ),
+              ),
               const SizedBox(height: 8),
-              StreamBuilder(
+              StreamBuilder<List<Producto>>(
                 stream: _productoService.obtenerProductosPorEmprendimiento(_emprendimiento!.id),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
+                builder: (context, snap) {
+                  if (!snap.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final productos = snapshot.data as List<Producto>;
+                  final productos = snap.data!;
                   if (productos.isEmpty) {
                     return const Text('Aún no has agregado productos.');
                   }
-                  return ListView.builder(
+                  return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: productos.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
                       final p = productos[i];
                       return ListTile(
@@ -222,7 +227,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   );
                 },
               ),
-            ]
+            ],
           ],
         ),
       ),
@@ -243,19 +248,20 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   backgroundImage: NetworkImage(emp.imagenes.first),
                 ),
               const SizedBox(height: 8),
-              Text(emp.nombre,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                emp.nombre,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        if (emp.descripcion != null && emp.descripcion!.isNotEmpty) ...[
+        if ((emp.descripcion ?? '').isNotEmpty) ...[
           const Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold)),
           Text(emp.descripcion!),
           const SizedBox(height: 8),
         ],
-        if (emp.info != null && emp.info!.isNotEmpty) ...[
+        if ((emp.info ?? '').isNotEmpty) ...[
           const Text('Información de contacto', style: TextStyle(fontWeight: FontWeight.bold)),
           Text(emp.info!),
           const SizedBox(height: 8),
@@ -266,7 +272,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
             spacing: 6,
             children: emp.hashtags.map((h) => Chip(label: Text('#$h'))).toList(),
           ),
-        ]
+        ],
       ],
     );
   }
@@ -293,6 +299,8 @@ class _RegistrarEmprendimientoScreenState
   final _descripcionCtrl = TextEditingController();
   final _contactoCtrl = TextEditingController();
   final _hashtagsCtrl = TextEditingController();
+  final _storageService = StorageService();
+  final service = EmprendimientoService();
 
   final _picker = ImagePicker();
   final List<File> _imagenes = [];
@@ -308,11 +316,35 @@ class _RegistrarEmprendimientoScreenState
 
   Future<void> _crearEmprendimiento() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _submitting = true);
 
     try {
-      // Aquí iría la lógica para subir imágenes y crear el documento
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final cliente = await ClienteService().obtenerClientePorId(uid);
+      final emprendedorService = EmprendedorService();
+
+      final yaExiste = await emprendedorService.obtenerEmprendedorPorId(uid);
+      if (yaExiste == null) {
+        final emprendedor = Emprendedor(
+          id: cliente!.id,
+          nombre: cliente.nombre,
+          email: cliente.email,
+          codigo: cliente.codigo,
+          password: cliente.password,
+          fotoPerfil: cliente.fotoPerfil,
+          emprendimientoIds: [],
+        );
+        await emprendedorService.crearEmprendedor(emprendedor);
+      }
+      
+      List<String> urls = [];
+      for (int i = 0; i < _imagenes.length; i++) {
+        final path = 'emprendimientos/$uid/imagen_$i.jpg';
+        final url = await _storageService.subirArchivo(_imagenes[i], path);
+        urls.add(url);
+      }
+
+
       final id = const Uuid().v4();
       final emp = Emprendimiento(
         id: id,
@@ -328,17 +360,24 @@ class _RegistrarEmprendimientoScreenState
         preguntasFrecuentes: {},
         rangoPrecios: null,
         rating: null,
-        emprendedorId: 'uid_actual', // obtén el uid real
-        imagenes: [],                // URLs luego de subirlas
+        emprendedorId: uid,
+        imagenes: [],
       );
 
-      await EmprendimientoService().crearEmprendimiento(emp);
+      await service.crearEmprendimiento(emp);
       if (!mounted) return;
       Navigator.pop(context, emp);
+      
+      for (final url in urls) {
+        await service.agregarImagenAEmprendimiento(emp.id, url);
+      }
+
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+
   }
+
 
   @override
   void dispose() {
