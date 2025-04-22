@@ -1,5 +1,5 @@
 class Favorito {
-  final String id;
+  String id;
   final String clienteId;
   final String emprendimientoId;
 
@@ -19,6 +19,7 @@ class Favorito {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'clienteId': clienteId,
       'emprendimientoId': emprendimientoId,
     };

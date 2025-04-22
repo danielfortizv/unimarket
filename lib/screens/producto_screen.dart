@@ -15,6 +15,26 @@ class ProductoDetailScreen extends StatefulWidget {
 
 class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
   int cantidad = 1;
+  int _currentImage = 0;
+  bool _showImageCounter = true;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentImage = index;
+      _showImageCounter = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _showImageCounter = false);
+    });
+  }
 
   String formatCurrency(num value) {
     final formatter = NumberFormat.decimalPattern('es_CO');
@@ -66,28 +86,77 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Carrusel de imágenes
-          SizedBox(
-            height: 220,
-            child: PageView.builder(
-              itemCount: producto.imagenes.length,
-              itemBuilder: (context, index) {
-                return Hero(
-                  tag: producto.id,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      producto.imagenes[index], // 👈 Importante: index, no .first
-                      width: double.infinity,
-                      height: 220,
-                      fit: BoxFit.cover,
+          // Carrusel con indicadores y contador
+          if (producto.imagenes.isNotEmpty)
+            Stack(
+              children: [
+                SizedBox(
+                  height: 220,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: producto.imagenes.length,
+                    itemBuilder: (context, index) {
+                      return Hero(
+                        tag: producto.id,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            producto.imagenes[index],
+                            width: double.infinity,
+                            height: 220,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(producto.imagenes.length, (index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: _currentImage == index ? 10 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: _currentImage == index ? Colors.white : Colors.white60,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                if (producto.imagenes.length > 1 && _showImageCounter)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: AnimatedOpacity(
+                      opacity: _showImageCounter ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 50),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_currentImage + 1}/${producto.imagenes.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                );
-              },
+              ],
             ),
-          ),
-
 
           const SizedBox(height: 20),
           Text(
@@ -198,7 +267,6 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),

@@ -1,9 +1,9 @@
 
 El botón de comentarios que aparezcan todos los comentarios juntos. 
-Arreglar el error de que se guarda mal la imagen de un nuevo emprendimiento
 Agregar la screen de domiciliario
 Agregar la screen del carrito y hacer todo la lógica de una compra
 Agregar la screen de Favoritos
+Cambiar los precios a buen formato, en chat al hcaerle click al nombre llevarlo al emprendimiento
 
 Crear la opción de hacer un comentario
 Probar que el chat funciona

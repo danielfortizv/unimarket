@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:unimarket/screens/registrar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_producto_screen.dart';
-import 'package:unimarket/screens/registrar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/registrar_producto_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/services/emprendedor_service.dart';
@@ -11,6 +11,7 @@ import 'package:unimarket/services/producto_service.dart';
 import 'package:unimarket/services/storage_service.dart';
 import 'package:unimarket/models/emprendedor_model.dart';
 import 'package:unimarket/services/cliente_service.dart';
+import 'package:unimarket/screens/favorite_screen.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:unimarket/models/cliente_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -250,6 +251,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.bookmark_border),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FavoritosScreen()),
+            );
+          },
+        ),
         title: InkWell(
           onTap: _emprendimientos.isNotEmpty ? _mostrarSelectorDeEmprendimiento : null,
           borderRadius: BorderRadius.circular(8),

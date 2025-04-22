@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
+import 'package:unimarket/models/favorito_model.dart';
 import 'package:unimarket/screens/emprendimiento_screen.dart';
+import 'package:unimarket/services/favorito_service.dart';
 
 class EmprendimientoCard extends StatefulWidget {
   final Emprendimiento emprendimiento;
@@ -20,11 +23,40 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
   int currentImage = 0;
   bool showImageCounter = true;
   late final PageController _pageController;
+  final _favoritoService = FavoritoService();
+  bool _esFavorito = false;
+  late final String _uid;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _uid = FirebaseAuth.instance.currentUser!.uid;
+    _verificarFavorito();
+  }
+
+  Future<void> _verificarFavorito() async {
+    final resultado = await _favoritoService.esFavorito(_uid, widget.emprendimiento.id);
+    if (mounted) {
+      setState(() => _esFavorito = resultado);
+    }
+  }
+
+  Future<void> _alternarFavorito() async {
+    if (_esFavorito) {
+      final fav = await _favoritoService.obtenerFavorito(_uid, widget.emprendimiento.id);
+      if (fav != null) await _favoritoService.eliminarFavorito(fav.id);
+    } else {
+      final nuevo = Favorito(
+        id: '${_uid}_${widget.emprendimiento.id}',
+        clienteId: _uid,
+        emprendimientoId: widget.emprendimiento.id,
+      );
+      await _favoritoService.agregarFavorito(nuevo);
+    }
+    if (mounted) {
+      setState(() => _esFavorito = !_esFavorito);
+    }
   }
 
   void _onPageChanged(int index) {
@@ -50,7 +82,6 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -59,11 +90,17 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => EmprendimientoScreen(emprendimiento: emp)),
+                        MaterialPageRoute(
+                          builder: (_) => EmprendimientoScreen(
+                            emprendimiento: emp,
+                            onToggleFavorito: () => setState(() {}),
+                          ),
+                        ),
                       );
+                      _verificarFavorito();
                     },
                     child: Text(
                       emp.nombre,
@@ -93,8 +130,6 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
               ],
             ),
           ),
-
-          // Carrusel de imágenes con indicadores
           if (emp.imagenes.isNotEmpty)
             Stack(
               children: [
@@ -115,7 +150,6 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                     },
                   ),
                 ),
-                // Paginador en la parte inferior como punticos
                 Positioned(
                   bottom: 8,
                   left: 0,
@@ -135,8 +169,7 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                     }),
                   ),
                 ),
-                // Contador arriba a la derecha (1/5)
-                if (widget.emprendimiento.imagenes.length > 1 && showImageCounter)
+                if (emp.imagenes.length > 1 && showImageCounter)
                   Positioned(
                     top: 12,
                     right: 12,
@@ -146,11 +179,11 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                            color: Colors.black.withAlpha((0.6 * 255).toInt()),
+                          color: Colors.black.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '${currentImage + 1}/${widget.emprendimiento.imagenes.length}',
+                          '${currentImage + 1}/${emp.imagenes.length}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -162,14 +195,10 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                   ),
               ],
             ),
-
-          // Descripción
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 4),
             child: Text(emp.descripcion ?? '', style: const TextStyle(fontFamily: 'Poppins')),
           ),
-
-          // Hashtags + botones
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -188,9 +217,16 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.chat_bubble_outline, size: 24),
-                  onPressed: () => widget.onMostrarComentarios(context, emp)
+                  onPressed: () => widget.onMostrarComentarios(context, emp),
                 ),
-                const Icon(Icons.bookmark_border, size: 27),
+                IconButton(
+                  icon: Icon(
+                    _esFavorito ? Icons.bookmark : Icons.bookmark_border,
+                    size: 27,
+                    color: _esFavorito ? Color(0xFF2B4C7E) : null,
+                  ),
+                  onPressed: _alternarFavorito,
+                ),
               ],
             ),
           ),
@@ -201,17 +237,13 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
 
   String _formatearRango(String? rango) {
     if (rango == null || rango == '-') return '-';
-
     final partes = rango.replaceAll('\$', '').split('-');
     if (partes.length != 2) return '\$$rango';
-
     final int? min = int.tryParse(partes[0].trim());
     final int? max = int.tryParse(partes[1].trim());
     if (min == null || max == null) return '\$$rango';
-
     final String formattedMin = _formatearNumero(min);
     final String formattedMax = _formatearNumero(max);
-
     return min == max ? '\$$formattedMin' : '\$$formattedMin - \$$formattedMax';
   }
 
@@ -224,5 +256,4 @@ class _EmprendimientoCardState extends State<EmprendimientoCard> {
     }
     return buffer.toString();
   }
-
 }

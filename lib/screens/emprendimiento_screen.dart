@@ -1,22 +1,78 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
+import 'package:unimarket/models/favorito_model.dart';
 import 'package:unimarket/screens/producto_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
+import 'package:unimarket/services/favorito_service.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unimarket/screens/chat_screen.dart';
 import 'package:unimarket/services/chat_service.dart';
 import 'package:unimarket/models/chat_model.dart';
 
-class EmprendimientoScreen extends StatelessWidget {
+class EmprendimientoScreen extends StatefulWidget {
   final Emprendimiento emprendimiento;
-  final EmprendimientoService _service = EmprendimientoService();
+  final void Function()? onToggleFavorito;
 
-  EmprendimientoScreen({super.key, required this.emprendimiento});
+  const EmprendimientoScreen({super.key, required this.emprendimiento, this.onToggleFavorito});
+
+  @override
+  State<EmprendimientoScreen> createState() => _EmprendimientoScreenState();
+}
+
+class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
+  final EmprendimientoService _service = EmprendimientoService();
+  final FavoritoService _favoritoService = FavoritoService();
+  bool _esFavorito = false;
+  String? _favoritoId;
+
+  @override
+  void initState() {
+    super.initState();
+    _verificarFavorito();
+  }
+
+  Future<void> _verificarFavorito() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final favorito = await _favoritoService.obtenerFavorito(uid, widget.emprendimiento.id);
+    if (mounted) {
+      setState(() {
+        _esFavorito = favorito != null;
+        _favoritoId = favorito?.id;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorito() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    if (_esFavorito) {
+      final favorito = await _favoritoService.obtenerFavorito(uid, widget.emprendimiento.id);
+      if (favorito != null) {
+        await _favoritoService.eliminarFavorito(favorito.id);
+      }
+      if (mounted) {
+        setState(() => _esFavorito = false);
+        widget.onToggleFavorito?.call(); // 👈 callback para notificar al home
+      }
+    } else {
+      final favorito = Favorito(
+        id: '',
+        clienteId: uid,
+        emprendimientoId: widget.emprendimiento.id,
+      );
+      await _favoritoService.agregarFavorito(favorito);
+      if (mounted) {
+        setState(() => _esFavorito = true);
+        widget.onToggleFavorito?.call(); // 👈 callback para notificar al home
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final emprendimiento = widget.emprendimiento;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -85,32 +141,19 @@ class EmprendimientoScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              if (emprendimiento.info != null && emprendimiento.info!.isNotEmpty) ...[
-                const Text(
-                  'Info',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                Text(emprendimiento.info!, style: const TextStyle(fontFamily: 'Poppins')),
-                const SizedBox(height: 18),
-              ],
-              if (emprendimiento.descripcion != null) ...[
-                const Text(
-                  'Descripción',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                Text(emprendimiento.descripcion!, style: const TextStyle(fontFamily: 'Poppins')),
-                const SizedBox(height: 18),
-              ],
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _toggleFavorito,
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        backgroundColor: Colors.grey.shade200,
+                        backgroundColor: _esFavorito ? Colors.grey.shade400 : Colors.grey.shade200,
                       ),
-                      child: const Text('Guardar', style: TextStyle(color: Colors.black)),
+                      child: Text(
+                        _esFavorito ? 'Guardado' : 'Guardar',
+                        style: const TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
