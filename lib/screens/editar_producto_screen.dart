@@ -23,7 +23,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
   final _storageService = StorageService();
   final _productoService = ProductoService();
 
-  List<File> _nuevasImagenes = [];
+  final List<File> _nuevasImagenes = [];
   List<String> _imagenesActuales = [];
   bool _submitting = false;
 
@@ -50,7 +50,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
     try {
       List<String> nuevasUrls = [];
       for (int i = 0; i < _nuevasImagenes.length; i++) {
-        final path = 'productos/${widget.producto.id}/editada_$i.jpg';
+        final path = 'productos/${widget.producto.emprendimientoId}/${widget.producto.id}/${DateTime.now().millisecondsSinceEpoch}.jpg';
         final url = await _storageService.subirArchivo(_nuevasImagenes[i], path);
         nuevasUrls.add(url);
       }
@@ -84,7 +84,6 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     OutlineInputBorder border([Color? c]) => OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: c ?? Colors.grey.shade300),

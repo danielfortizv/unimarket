@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unimarket/models/producto_model.dart';
@@ -42,14 +41,7 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
     setState(() => _submitting = true);
 
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       List<String> urls = [];
-      for (int i = 0; i < _imagenes.length; i++) {
-        final path = 'productos/$uid/${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
-        final url = await _storageService.subirArchivo(_imagenes[i], path);
-        urls.add(url);
-      }
 
       final prod = Producto(
         id: const Uuid().v4(),
@@ -61,6 +53,12 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
         rating: null,
         comentarioIds: [],
       );
+      
+      for (int i = 0; i < _imagenes.length; i++) {
+        final path = 'productos/${widget.emprendimientoId}/${prod.id}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final url = await _storageService.subirArchivo(_imagenes[i], path);
+        urls.add(url);
+      }
 
       await _service.crearProducto(prod);
       if (mounted) Navigator.pop(context, true);

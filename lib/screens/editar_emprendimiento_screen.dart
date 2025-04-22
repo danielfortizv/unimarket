@@ -50,7 +50,7 @@ class _EditarEmprendimientoScreenState extends State<EditarEmprendimientoScreen>
     try {
       List<String> nuevasUrls = [];
       for (int i = 0; i < _nuevasImagenes.length; i++) {
-        final path = 'emprendimientos/${widget.emprendimiento.emprendedorId}/editada_$i.jpg';
+        final path = 'emprendimientos/${widget.emprendimiento.id}/${DateTime.now().millisecondsSinceEpoch}.jpg';
         final url = await _storageService.subirArchivo(_nuevasImagenes[i], path);
         nuevasUrls.add(url);
       }

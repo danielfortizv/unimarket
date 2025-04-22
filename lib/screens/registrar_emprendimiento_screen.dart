@@ -51,6 +51,7 @@ class _RegistrarEmprendimientoScreenState
       final uid = FirebaseAuth.instance.currentUser!.uid;
       final cliente = await ClienteService().obtenerClientePorId(uid);
       final emprendedorService = EmprendedorService();
+    
 
       final yaExiste = await emprendedorService.obtenerEmprendedorPorId(uid);
       if (yaExiste == null) {
@@ -66,15 +67,15 @@ class _RegistrarEmprendimientoScreenState
         await emprendedorService.crearEmprendedor(emprendedor);
       }
       
+      final id = const Uuid().v4();
+      
       List<String> urls = [];
       for (int i = 0; i < _imagenes.length; i++) {
-        final path = 'emprendimientos/$uid/imagen_$i.jpg';
+        final path = 'emprendimientos/$id/${DateTime.now().millisecondsSinceEpoch}.jpg';
         final url = await _storageService.subirArchivo(_imagenes[i], path);
         urls.add(url);
       }
 
-
-      final id = const Uuid().v4();
       final emp = Emprendimiento(
         id: id,
         nombre: _nombreCtrl.text.trim(),
