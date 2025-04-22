@@ -27,7 +27,7 @@ class EmprendimientoService {
     });
   }
 
-  Future<void> actualizarEmprendimiento(Emprendimiento emprendimiento) async {
+  Future<void> actualizarEmprendimiento(Emprendimiento emprendimiento, {required String id}) async {
     if (emprendimiento.nombre.isEmpty || emprendimiento.emprendedorId.isEmpty) {
       throw Exception('El emprendimiento debe tener nombre y emprendedor');
     }
@@ -234,5 +234,24 @@ class EmprendimientoService {
             e.hashtags.any((h) => h.toLowerCase().contains(palabra))))
         .toList();
   }
+
+  Future<void> eliminarPreguntaFrecuente(String emprendimientoId, String pregunta) async {
+    final doc = await _db.collection('emprendimientos').doc(emprendimientoId).get();
+    if (!doc.exists) throw Exception('El emprendimiento no existe');
+
+    final data = doc.data()!;
+    final preguntas = Map<String, dynamic>.from(data['preguntasFrecuentes'] ?? {});
+
+    if (!preguntas.containsKey(pregunta)) {
+      throw Exception('La pregunta no existe');
+    }
+
+    preguntas.remove(pregunta);
+
+    await _db.collection('emprendimientos').doc(emprendimientoId).update({
+      'preguntasFrecuentes': preguntas,
+    });
+  }
+
 
 }
