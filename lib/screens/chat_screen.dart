@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:unimarket/models/chat_model.dart';
 import 'package:unimarket/models/mensaje_model.dart';
 import 'package:unimarket/services/mensaje_service.dart';
+import 'package:unimarket/screens/emprendimiento_screen.dart';
+import 'package:unimarket/services/emprendimiento_service.dart';
+
 
 class ChatScreen extends StatefulWidget {
   final Chat chat;
@@ -58,18 +61,32 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
-          children: [
-            const SizedBox(width: 4),
-            CircleAvatar(
-              backgroundImage: NetworkImage(widget.fotoEmprendimiento),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              widget.nombreEmprendimiento,
-              style: const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
-            ),
-          ],
+        title: GestureDetector(
+          onTap: () async {
+            final service = EmprendimientoService();
+            final emp = await service.obtenerPorId(widget.chat.emprendimientoId);
+            if (emp != null && context.mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EmprendimientoScreen(emprendimiento: emp),
+                ),
+              );
+            }
+          },
+          child: Row(
+            children: [
+              const SizedBox(width: 4),
+              CircleAvatar(
+                backgroundImage: NetworkImage(widget.fotoEmprendimiento),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                widget.nombreEmprendimiento,
+                style: const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
+              ),
+            ],
+          ),
         ),
       ),
       body: Column(

@@ -43,6 +43,7 @@ dependencies:
   firebase_storage: ^12.4.5
   intl: ^0.20.2
   uuid: ^4.5.1
+  flutter_launcher_icons: ^0.13.1
 
 
 dev_dependencies:
@@ -104,3 +105,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logoIcono.png"

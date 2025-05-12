@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:unimarket/screens/registrar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_producto_screen.dart';
@@ -241,6 +242,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     setState(() => _emprendimiento = emp);
   }
 
+  final NumberFormat formatoPesos = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0, customPattern: '\u00A4#,##0');
+
   @override
   Widget build(BuildContext context) {
     if (_cliente == null) {
@@ -399,7 +402,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           backgroundImage: NetworkImage(p.imagenes.first),
                         ),
                         title: Text(p.nombre),
-                        subtitle: Text('\$${p.precio.toStringAsFixed(0)}'),
+                        subtitle: Text(formatoPesos.format(p.precio)),
                         onTap: () async {
                           final actualizado = await Navigator.push(
                             context,

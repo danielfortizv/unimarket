@@ -23,7 +23,7 @@ class _EditarEmprendimientoScreenState extends State<EditarEmprendimientoScreen>
   final _storageService = StorageService();
   final _service = EmprendimientoService();
 
-  List<File> _nuevasImagenes = [];
+  final List<File> _nuevasImagenes = [];
   List<String> _imagenesExistentes = [];
   bool _submitting = false;
 

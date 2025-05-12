@@ -10,6 +10,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unimarket/screens/chat_screen.dart';
 import 'package:unimarket/services/chat_service.dart';
 import 'package:unimarket/models/chat_model.dart';
+import 'package:intl/intl.dart';
+
 
 class EmprendimientoScreen extends StatefulWidget {
   final Emprendimiento emprendimiento;
@@ -25,7 +27,6 @@ class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
   final EmprendimientoService _service = EmprendimientoService();
   final FavoritoService _favoritoService = FavoritoService();
   bool _esFavorito = false;
-  String? _favoritoId;
 
   @override
   void initState() {
@@ -39,7 +40,6 @@ class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
     if (mounted) {
       setState(() {
         _esFavorito = favorito != null;
-        _favoritoId = favorito?.id;
       });
     }
   }
@@ -68,6 +68,8 @@ class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
       }
     }
   }
+
+  final NumberFormat formatoPesos = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0, customPattern: '\u00A4#,##0');
 
   @override
   Widget build(BuildContext context) {
@@ -256,7 +258,7 @@ class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(producto.nombre, style: const TextStyle(fontFamily: 'Poppins')),
-                            Text('\$${producto.precio}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            Text(formatoPesos.format(producto.precio), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                       );
