@@ -6,12 +6,9 @@ import 'package:unimarket/models/chat_model.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
 import 'package:unimarket/models/mensaje_model.dart';
 import 'package:unimarket/models/emprendedor_model.dart';
-import 'package:unimarket/models/cliente_model.dart';
 import 'package:unimarket/screens/chat_screen.dart';
 import 'package:unimarket/services/chat_service.dart';
 import 'package:unimarket/services/emprendedor_service.dart';
-import 'package:unimarket/services/cliente_service.dart';
-import 'package:unimarket/services/mensaje_service.dart';
 import 'package:unimarket/widgets/avatar.dart';
 
 class ChatsScreen extends StatefulWidget {
@@ -29,8 +26,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
   Emprendedor? _emprendedor;
   final ChatService _chatService = ChatService();
   final EmprendedorService _emprendedorService = EmprendedorService();
-  final ClienteService _clienteService = ClienteService();
-  final MensajeService _mensajeService = MensajeService();
 
   @override
   void initState() {
