@@ -160,17 +160,18 @@ class _EmprendimientoScreenState extends State<EmprendimientoScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
+                    child: // En EmprendimientoScreen, en la sección del botón "Mensaje":
+                    ElevatedButton(
                       onPressed: () async {
                         final userId = FirebaseAuth.instance.currentUser?.uid;
                         if (userId == null) return;
 
                         final chatService = ChatService();
 
-                        // Verificar si ya existe un chat entre cliente y emprendedor
+                        // Verificar si ya existe un chat entre cliente y emprendimiento
                         Chat? chatExistente = await chatService.obtenerChatEntreClienteYEmprendimiento(
                           userId,
-                          emprendimiento.emprendedorId,
+                          emprendimiento.id, // Cambiado de emprendedorId a emprendimiento.id
                         );
 
                         // Si no existe, crear uno nuevo

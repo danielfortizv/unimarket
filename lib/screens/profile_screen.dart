@@ -5,6 +5,7 @@ import 'package:unimarket/screens/registrar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_emprendimiento_screen.dart';
 import 'package:unimarket/screens/editar_producto_screen.dart';
 import 'package:unimarket/screens/registrar_producto_screen.dart';
+import 'package:unimarket/screens/chats_screen.dart'; // Agregado
 import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:unimarket/services/emprendedor_service.dart';
 import 'package:unimarket/models/emprendimiento_model.dart';
@@ -106,7 +107,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
       if (mounted) Navigator.pop(context);
     }
   }
-
 
   void _mostrarSelectorDeEmprendimiento() async {
     final resultado = await showModalBottomSheet<Emprendimiento?>(
@@ -276,6 +276,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
           ),
         ),
         actions: [
+          // Nuevo: Botón para ver chats del emprendimiento
+          if (_emprendimiento != null)
+            IconButton(
+              icon: const Icon(Icons.message),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatsScreen(
+                      emprendimientoSeleccionado: _emprendimiento!.id,
+                    ),
+                  ),
+                );
+              },
+            ),
           if (_emprendimiento != null)
             IconButton(
               icon: const Icon(Icons.edit),
@@ -356,6 +371,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
             else ...[
               _buildEmprendimientoSection(),
               const SizedBox(height: 16),
+              // Nuevo: Botón para ver todos los chats como emprendedor
+              if (_emprendedor != null && _emprendimientos.isNotEmpty)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChatsScreen(), // Sin emprendimiento específico
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.chat),
+                  label: const Text('Ver todos mis chats'),
+                ),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () async {
                   final agregado = await Navigator.push<bool>(
@@ -620,5 +650,4 @@ class _PerfilScreenState extends State<PerfilScreen> {
       ],
     );
   }
-
 }

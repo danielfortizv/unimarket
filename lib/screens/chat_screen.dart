@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:unimarket/models/chat_model.dart';
@@ -5,7 +7,6 @@ import 'package:unimarket/models/mensaje_model.dart';
 import 'package:unimarket/services/mensaje_service.dart';
 import 'package:unimarket/screens/emprendimiento_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
-
 
 class ChatScreen extends StatefulWidget {
   final Chat chat;
@@ -28,6 +29,68 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _mensajeController = TextEditingController();
   final MensajeService _mensajeService = MensajeService();
+  String? _fotoOtroParticipante;
+  String? _nombreOtroParticipante;
+  bool _esEmprendedor = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _verificarTipoUsuarioYObtenerInfo();
+    _marcarComoLeidos();
+  }
+
+  Future<void> _verificarTipoUsuarioYObtenerInfo() async {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    
+    // Verificar si es emprendedor
+    final emprendedorDoc = await FirebaseFirestore.instance
+        .collection('emprendedores')
+        .doc(userId)
+        .get();
+    
+    _esEmprendedor = emprendedorDoc.exists;
+    
+    if (_esEmprendedor) {
+      // Si soy emprendedor, obtener info del cliente
+      final clienteDoc = await FirebaseFirestore.instance
+          .collection('clientes')
+          .doc(widget.chat.clienteId)
+          .get();
+      
+      if (clienteDoc.exists) {
+        final clienteData = clienteDoc.data()!;
+        _nombreOtroParticipante = clienteData['nombre'];
+        _fotoOtroParticipante = clienteData['fotoPerfil'];
+      }
+    } else {
+      // Si soy cliente, obtener info del emprendimiento y emprendedor
+      final emprendimientoDoc = await FirebaseFirestore.instance
+          .collection('emprendimientos')
+          .doc(widget.chat.emprendimientoId)
+          .get();
+      
+      if (emprendimientoDoc.exists) {
+        final empData = emprendimientoDoc.data()!;
+        final emprendedorDoc = await FirebaseFirestore.instance
+            .collection('emprendedores')
+            .doc(empData['emprendedorId'])
+            .get();
+        
+        if (emprendedorDoc.exists) {
+          final emprendedorData = emprendedorDoc.data()!;
+          _nombreOtroParticipante = emprendedorData['nombre'];
+          _fotoOtroParticipante = emprendedorData['fotoPerfil'];
+        }
+      }
+    }
+    
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _marcarComoLeidos() async {
+    await _mensajeService.marcarMensajesComoLeidos(widget.chat.id, widget.currentUserId);
+  }
 
   void _enviarMensaje() async {
     final texto = _mensajeController.text.trim();
@@ -35,10 +98,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final ahora = DateTime.now();
     final mensaje = Mensaje(
-      tipo:"texto",
+      tipo: "texto",
       emisorId: widget.currentUserId,
       contenido: texto,
       hora: ahora.toIso8601String(),
+      leidoPor: [widget.currentUserId], // El emisor ya ha "leído" su propio mensaje
     );
 
     await _mensajeService.crearMensaje(mensaje, widget.chat.id);
@@ -78,11 +142,20 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               const SizedBox(width: 4),
               CircleAvatar(
-                backgroundImage: NetworkImage(widget.fotoEmprendimiento),
+                backgroundImage: _fotoOtroParticipante != null
+                    ? NetworkImage(_fotoOtroParticipante!)
+                    : null,
+                backgroundColor: Colors.grey[300],
+                child: _fotoOtroParticipante == null
+                    ? Icon(
+                        Icons.person,
+                        color: Colors.grey[600],
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               Text(
-                widget.nombreEmprendimiento,
+                _nombreOtroParticipante ?? widget.nombreEmprendimiento,
                 style: const TextStyle(fontSize: 20, fontFamily: 'Poppins'),
               ),
             ],
@@ -154,9 +227,26 @@ class _ChatScreenState extends State<ChatScreen> {
                                     style: const TextStyle(fontFamily: 'Poppins'),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    hora,
-                                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        hora,
+                                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                      ),
+                                      if (esMio) ...[
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          mensaje.leidoPor.length > 1
+                                              ? Icons.done_all
+                                              : Icons.done,
+                                          size: 16,
+                                          color: mensaje.leidoPor.length > 1
+                                              ? Colors.blue
+                                              : Colors.grey,
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ),
