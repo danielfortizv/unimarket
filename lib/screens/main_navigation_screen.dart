@@ -57,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ComprasPlaceholderScreen()),
+              MaterialPageRoute(builder: (_) => const CarritoScreen()),
             );
           },
         ),

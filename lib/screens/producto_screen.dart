@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unimarket/models/producto_model.dart';
 import 'package:unimarket/models/comentario_model.dart';
+import 'package:unimarket/models/carrito_mercado_model.dart';
+import 'package:unimarket/screens/compras_screen.dart';
+import 'package:unimarket/services/carrito_mercado_service.dart';
+import 'package:unimarket/services/emprendimiento_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -18,6 +23,10 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
   int _currentImage = 0;
   bool _showImageCounter = true;
   late PageController _pageController;
+  bool _addingToCart = false;
+  
+  final CarritoService _carritoService = CarritoService();
+  final EmprendimientoService _emprendimientoService = EmprendimientoService();
 
   @override
   void initState() {
@@ -37,8 +46,97 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
   }
 
   String formatCurrency(num value) {
-    final formatter = NumberFormat.decimalPattern('es_CO');
-    return '\$${formatter.format(value)}';
+    final formatter = NumberFormat.currency(
+      locale: 'es_CO', 
+      symbol: '\$', 
+      decimalDigits: 0, 
+      customPattern: '\u00A4#,##0'
+    );
+    return formatter.format(value);
+  }
+
+  Future<void> _addToCart() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes iniciar sesión')),
+      );
+      return;
+    }
+
+    setState(() {
+      _addingToCart = true;
+    });
+
+    try {
+      // Obtener información del emprendimiento
+      final emprendimiento = await _emprendimientoService.obtenerPorId(widget.producto.emprendimientoId);
+      if (emprendimiento == null) {
+        throw Exception('Emprendimiento no encontrado');
+      }
+
+      // Buscar si ya existe un carrito para este emprendimiento (no emprendedor)
+      final carritosExistentes = await _carritoService.obtenerCarritosPorCliente(userId).first;
+      CarritoDeMercado? carritoExistente;
+      
+      for (final carrito in carritosExistentes) {
+        if (carrito.emprendedorId == widget.producto.emprendimientoId) { // Aquí estaba el error
+          carritoExistente = carrito;
+          break;
+        }
+      }
+
+      if (carritoExistente != null) {
+        // Agregar al carrito existente (con múltiples productos si cantidad > 1)
+        for (int i = 0; i < cantidad; i++) {
+          await _carritoService.agregarProductoAlCarrito(carritoExistente.id, widget.producto.id);
+        }
+      } else {
+        // Crear nuevo carrito - Obtener un ID generado automáticamente
+        final docRef = FirebaseFirestore.instance.collection('carritos').doc();
+        final nuevoCarrito = CarritoDeMercado(
+          id: docRef.id, // Usar el ID generado automáticamente
+          clienteId: userId,
+          emprendedorId: widget.producto.emprendimientoId, // Usar emprendimientoId aquí
+          productoIds: List.generate(cantidad, (index) => widget.producto.id),
+        );
+        await _carritoService.crearCarrito(nuevoCarrito);
+      }
+
+      // Mostrar mensaje de éxito
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$cantidad ${cantidad > 1 ? 'productos agregados' : 'producto agregado'} al carrito'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'Ver carrito',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CarritoScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al agregar al carrito: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _addingToCart = false;
+        });
+      }
+    }
   }
 
   @override
@@ -58,6 +156,17 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CarritoScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -267,22 +376,32 @@ class _ProductoDetailScreenState extends State<ProductoDetailScreen> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
-                onPressed: () {
-                  // Acción para agregar al carrito
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("Add", style: TextStyle(fontSize: 16)),
-                    Text(
-                      formatCurrency(total),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+                onPressed: _addingToCart ? null : _addToCart,
+                child: _addingToCart
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Agregar al carrito",
+                            style: TextStyle(fontSize: 16, fontFamily: 'Poppins'),
+                          ),
+                          Text(
+                            formatCurrency(total),
+                            style: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
+                          ),
+                        ],
+                      ),
               ),
             ),
           ],

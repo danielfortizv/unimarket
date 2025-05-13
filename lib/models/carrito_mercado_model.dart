@@ -1,13 +1,13 @@
 class CarritoDeMercado {
   final String id;
   final String clienteId;
-  final String emprendedorId;
+  final String emprendedorId; // En realidad almacena el emprendimientoId
   final List<String> productoIds;
 
   CarritoDeMercado({
     required this.id,
     required this.clienteId,
-    required this.emprendedorId,
+    required this.emprendedorId, // Campo confuso pero mantenemos por compatibilidad
     required this.productoIds,
   });
 
@@ -16,7 +16,7 @@ class CarritoDeMercado {
       id: id,
       clienteId: map['clienteId'],
       emprendedorId: map['emprendedorId'],
-      productoIds: List<String>.from(map['productoIds']),
+      productoIds: List<String>.from(map['productoIds'] ?? []),
     );
   }
 
