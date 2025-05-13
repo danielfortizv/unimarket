@@ -19,6 +19,7 @@ import 'package:unimarket/models/cliente_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:unimarket/widgets/avatar.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -317,12 +318,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    CircleAvatar(
+                    AvatarConDefault(
+                      imageUrl: _cliente!.fotoPerfil,
                       radius: 50,
-                      backgroundImage: NetworkImage(
-                        _cliente!.fotoPerfil ??
-                            'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_cliente!.nombre)}',
-                      ),
+                      placeholderName: _cliente!.nombre,
                     ),
                     Container(
                       width: 100,

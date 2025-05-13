@@ -69,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'nombre': nombre,
         'email': email,
         'codigo': codigo,
-        'fotoPerfil': fotoUrl ?? '',
+        'fotoPerfil': fotoUrl,
       });
 
       await userCredential.user!.sendEmailVerification();

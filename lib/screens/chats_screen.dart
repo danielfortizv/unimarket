@@ -12,6 +12,7 @@ import 'package:unimarket/services/chat_service.dart';
 import 'package:unimarket/services/emprendedor_service.dart';
 import 'package:unimarket/services/cliente_service.dart';
 import 'package:unimarket/services/mensaje_service.dart';
+import 'package:unimarket/widgets/avatar.dart';
 
 class ChatsScreen extends StatefulWidget {
   final String? emprendimientoSeleccionado; // Para mostrar chats específicos de un emprendimiento
@@ -211,19 +212,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
                                 return ListTile(
                                   contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                                  leading: CircleAvatar(
+                                  leading: AvatarConDefault(
+                                    imageUrl: fotoOtroParticipante,
                                     radius: 28,
-                                    backgroundImage: fotoOtroParticipante != null
-                                        ? NetworkImage(fotoOtroParticipante)
-                                        : null,
-                                    backgroundColor: Colors.grey[300],
-                                    child: fotoOtroParticipante == null
-                                        ? const Icon(
-                                            Icons.account_circle,
-                                            size: 56,
-                                            color: Colors.white,
-                                          )
-                                        : null,
+                                    placeholderName: nombreAMostrar,
                                   ),
                                   title: Text(
                                     nombreAMostrar,

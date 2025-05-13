@@ -7,6 +7,7 @@ import 'package:unimarket/models/mensaje_model.dart';
 import 'package:unimarket/services/mensaje_service.dart';
 import 'package:unimarket/screens/emprendimiento_screen.dart';
 import 'package:unimarket/services/emprendimiento_service.dart';
+import 'package:unimarket/widgets/avatar.dart';
 
 class ChatScreen extends StatefulWidget {
   final Chat chat;
@@ -64,7 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _fotoOtroParticipante = clienteData['fotoPerfil'];
       }
     } else {
-      // Si soy cliente, obtener info del emprendimiento y emprendedor
+      // Si soy cliente, mostrar nombre e imagen del EMPRENDIMIENTO
       final emprendimientoDoc = await FirebaseFirestore.instance
           .collection('emprendimientos')
           .doc(widget.chat.emprendimientoId)
@@ -72,16 +73,13 @@ class _ChatScreenState extends State<ChatScreen> {
       
       if (emprendimientoDoc.exists) {
         final empData = emprendimientoDoc.data()!;
-        final emprendedorDoc = await FirebaseFirestore.instance
-            .collection('emprendedores')
-            .doc(empData['emprendedorId'])
-            .get();
         
-        if (emprendedorDoc.exists) {
-          final emprendedorData = emprendedorDoc.data()!;
-          _nombreOtroParticipante = emprendedorData['nombre'];
-          _fotoOtroParticipante = emprendedorData['fotoPerfil'];
-        }
+        // CORREGIDO: Usar nombre e imagen del emprendimiento, no del emprendedor
+        _nombreOtroParticipante = empData['nombre']; // Nombre del emprendimiento
+        _fotoOtroParticipante = empData['imagenes'] != null && 
+                               (empData['imagenes'] as List).isNotEmpty
+                               ? empData['imagenes'][0] 
+                               : null; // Primera imagen del emprendimiento
       }
     }
     
@@ -141,17 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Row(
             children: [
               const SizedBox(width: 4),
-              CircleAvatar(
-                backgroundImage: _fotoOtroParticipante != null
-                    ? NetworkImage(_fotoOtroParticipante!)
-                    : null,
-                backgroundColor: Colors.grey[300],
-                child: _fotoOtroParticipante == null
-                    ? Icon(
-                        Icons.person,
-                        color: Colors.grey[600],
-                      )
-                    : null,
+              AvatarConDefault(
+                imageUrl: _fotoOtroParticipante,
+                radius: 20,
+                placeholderName: _nombreOtroParticipante ?? widget.nombreEmprendimiento,
               ),
               const SizedBox(width: 12),
               Text(

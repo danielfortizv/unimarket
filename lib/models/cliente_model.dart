@@ -6,7 +6,6 @@ class Cliente {
   final String? password;
   final String? fotoPerfil;
 
-
   Cliente({required this.id, required this.nombre, required this.email, required this.codigo, this.password, this.fotoPerfil});
 
   factory Cliente.fromMap(Map<String, dynamic> map, String id) {
@@ -16,17 +15,27 @@ class Cliente {
       email: map['email'],
       codigo: map['codigo'],
       password: map['password'],
-      fotoPerfil: map['fotoPerfil'],
+      fotoPerfil: map['fotoPerfil']?.isEmpty == true ? null : map['fotoPerfil'], // Convertir string vacío a null
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'nombre': nombre,
       'email': email,
       'codigo': codigo,
-      if (password != null) 'password': password,
-      'fotoPerfil': fotoPerfil,
     };
+    
+    // Solo agregar password si no es null
+    if (password != null) {
+      map['password'] = password;
+    }
+    
+    // Solo agregar fotoPerfil si no es null
+    if (fotoPerfil != null) {
+      map['fotoPerfil'] = fotoPerfil;
+    }
+    
+    return map;
   }
 }
